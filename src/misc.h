@@ -57,19 +57,11 @@ extern char *strmcat(char *dest, const char *src, const unsigned int maxlen);
 extern int copy_file(const char *src_filename, const char *dest_filename);
 extern void build_filename(char *, const char *, const char *);
 
+#define error(x,y,msg) fprintf(stderr, " [%s]\n", catgets(cat,x,y,msg))
+
 #ifdef INLINE
 #define SplitPath(path, drive, dir, fname, ext)    (fnsplit((path), (drive), (dir), (fname), (ext)))
-#ifdef USE_KITTEN
-#define error(x,y,error) fprintf(stderr, "[%s]\n", kittengets(x,y,error))
-#else
-#define error(error)    (fprintf(stderr, " [%s]\n", (error)))
-#endif /* USE_KITTEN */
 #else
 extern void SplitPath(const char* path, char* drive, char* dir, char* fname, char* ext);
-#ifdef USE_KITTEN
-extern void error(int, int, const char *);
-#else
-extern void error(const char *);
-#endif /* USE_KITTEN */
 #endif /* INLINE */
 #endif /* __MISC__H__ */

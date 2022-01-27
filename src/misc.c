@@ -11,10 +11,11 @@
 #include <string.h>
 #include <sys/stat.h>
 
-#ifdef USE_KITTEN
-#include "kitten.h"
-#endif /* USE_KITTEN */
+#include "../kitten/kitten.h"
+
 #include "misc.h"
+
+extern nl_catd cat;
 
 #ifdef __WATCOMC__
 #pragma pack(1)
@@ -100,24 +101,7 @@ void SplitPath(const char* path, char* drive, char* dir, char* fname, char* ext)
     fnsplit(path, drive, dir, fname, ext);
 }
 
-/*-------------------------------------------------------------------------*/
-/* Prints an error message			           		   */
-/*-------------------------------------------------------------------------*/
-
-#ifdef USE_KITTEN
-void error(int a, int b, const char *error)
-#else
-void error(const char *error)
-#endif
-{
-#ifdef USE_KITTEN
-    fprintf(stderr, " [%s]\n", kittengets(a,b,error));
-#else
-    fprintf(stderr, " [%s]\n", error);
-#endif
-
-} /* end error. */
-#endif /* INLINE */
+#endif /* !INLINE */
 
 /*-------------------------------------------------------------------------*/
 /* Works like function strcpy() but stops copying characters into          */
@@ -351,11 +335,7 @@ int copy_file(const char *src_filename,
   src_file = fopen(src_filename, "rb");
   if (src_file == NULL)
   {
-#ifdef USE_KITTEN
     error(1,25,"Cannot open source file");
-#else
-    error("Cannot open source file");
-#endif
     return 0;
   }
 
@@ -363,11 +343,7 @@ int copy_file(const char *src_filename,
   dest_file = fopen(dest_filename, "wb");
   if (dest_file == NULL)
   {
-#ifdef USE_KITTEN
     error(1,26,"Cannot create destination file");
-#else
-    error("Cannot create destination file");
-#endif
     fclose(src_file);
     return 0;
   }
@@ -379,11 +355,7 @@ int copy_file(const char *src_filename,
   {
     if (fwrite(buffer, sizeof(char), readsize, dest_file) != readsize)
     {
-#ifdef USE_KITTEN
       error(1,27,"Write error on destination file");
-#else
-      error("Write error on destination file");
-#endif
       fclose(src_file);
       fclose(dest_file);
       return 0;
