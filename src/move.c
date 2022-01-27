@@ -37,7 +37,12 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
+#ifdef __GNUC__
+#include <unistd.h>
+#define stricmp strcasecmp
+#else
 #include <io.h>
+#endif
 #ifdef __WATCOMC__
 #include <direct.h>
 #else
@@ -381,7 +386,7 @@ static void prepare_move(char *src_filename, char *dest_filename)
     if (dest_filename[strlen(dest_filename)-1] == '.')
        dest_filename[strlen(dest_filename)-1] = 0;
 
-    if (strcmpi(src_filename, dest_filename) == 0)
+    if (stricmp(src_filename, dest_filename) == 0)
     {
        error(1,11,"File cannot be copied onto itself");
        return;

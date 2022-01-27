@@ -1,7 +1,11 @@
 #ifndef __MISC__H__
 #define __MISC__H__
 
-#ifdef __WATCOMC__
+#if defined (__GNUC__)
+#include <libi86/stdlib.h>
+#endif
+
+#if defined (__WATCOMC__) || defined (__GNUC__)
 #define MAXPATH _MAX_PATH
 #define MAXFILE _MAX_FNAME
 #define MAXEXT _MAX_EXT
