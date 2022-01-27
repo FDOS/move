@@ -14,6 +14,14 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#ifdef __GNUC__
+#include <direct.h>
+#include <unistd.h>
+#define stricmp strcasecmp
+#else
+#include <io.h>
+#endif
+
 #ifdef __WATCOMC__
 #include <direct.h>
 #include <stdlib.h>
@@ -21,7 +29,6 @@
 #include <dir.h>
 #endif
 #include <stdio.h>
-#include <io.h>
 #include <string.h>
 #include <dos.h>
 #include <sys/stat.h>
@@ -363,7 +370,7 @@ int RenameTree(const char* src_filename, const char* dest_filename)
     SplitPath(src_filename, srcdrive, srcdir, srcfname, srcext);
     SplitPath(dest_filename, dstdrive, dstdir, dstfname, dstext);
     
-    if ((strcmpi(srcdir, dstdir) == 0) &&
+    if ((stricmp(srcdir, dstdir) == 0) &&
 	(!dir_exists(dest_filename)))
     {
 	return rename(src_filename, dest_filename) == 0;

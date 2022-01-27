@@ -1,5 +1,13 @@
 #include <stdio.h>
+
+#ifdef __GNUC__
+#include <direct.h>
+#include <unistd.h>
+#define stricmp strcasecmp
+#else
 #include <io.h>
+#endif
+
 #ifdef __WATCOMC__
 #include <direct.h>
 #include <stdlib.h>
@@ -7,6 +15,7 @@
 #else
 #include <dir.h>
 #endif /* __WATCOMC__ */
+
 #include <dos.h>
 #include <string.h>
 #include <sys/stat.h>
