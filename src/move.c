@@ -46,10 +46,9 @@
 #include <dos.h>
 #include <sys/stat.h>
 
+#include "../kitten/kitten.h"
+
 #include "version.h"
-#ifdef USE_KITTEN
-#include "kitten.h"  /* Translation functions */
-#endif
 #include "movedir.h" /* MoveDirectory, MoveTree */
 #include "misc.h"    /* addsep, dir_exist, strmcpy, strmcat, error,
                         copy_file, build_filename, makedir */
@@ -73,6 +72,8 @@
 
 char opt_verify=0,opt_help=0,opt_prompt=ASK,old_verify=0,dest_drive;
 int found=0;
+
+nl_catd cat;
 
 /* P R O T O T Y P E S */
 /*------------------------------------------------------*/
@@ -227,12 +228,8 @@ static int extract_sources(int fileargc, char** fileargv)
 		tempname[sep-pargv] = '\0';
 		if (!FullPath(SourcePaths[AmofSources++], tempname))
 		{
-#ifdef USE_KITTEN
 		    error(1,9,"Invalid source file");
-		    kittenclose();
-#else
-		    error("Invalid source file");
-#endif
+		    catclose(cat);
 		    exit(1);
 		}
 	    }
@@ -246,11 +243,7 @@ static int extract_sources(int fileargc, char** fileargv)
 	{
 	    if (!FullPath(SourcePaths[AmofSources++], pargv))
 	    {
-#ifdef USE_KITTEN
 		error(1,9,"Invalid source file");
-#else
-		error("Invalid source file");
-#endif
 		return 0;
 	    }
 	}
@@ -332,11 +325,7 @@ static void move_files(const char *src_pathname, const char *src_filename,
     if (done)
     {
        char buffer[80];
-#ifdef USE_KITTEN
-       sprintf(buffer, "%s%s %s", src_pathname, src_filename, kittengets(1,0,"does not exist!"));
-#else
-       sprintf(buffer, "%s%s does not exist!", src_pathname, src_filename);
-#endif
+       sprintf(buffer, "%s%s %s", src_pathname, src_filename, catgets(cat, 1,0,"does not exist!"));
        /* error */
        fprintf(stderr, " [%s]\n", buffer);
     }
@@ -347,12 +336,8 @@ static void move_files(const char *src_pathname, const char *src_filename,
         strmcpy(tmp_pathname, dest_pathname, sizeof(tmp_pathname));
         if (makedir(tmp_pathname) != 0)
 	{
-#ifdef USE_KITTEN
 	    error(1,10,"Unable to create directory");
-	    kittenclose();
-#else
-	    error("Unable to create directory");
-#endif
+	    catclose(cat);
 	    exit(4);
         } /* end if. */
 
@@ -390,9 +375,6 @@ static void prepare_move(char *src_filename, char *dest_filename)
     struct dfree disktable;
     unsigned long free_diskspace;
     char input[5];
-#ifndef USE_KITTEN
-    char ch;
-#endif
 
     if (src_filename[strlen(src_filename)-1] == '.')
        src_filename[strlen(src_filename)-1] = 0;
@@ -401,11 +383,7 @@ static void prepare_move(char *src_filename, char *dest_filename)
 
     if (strcmpi(src_filename, dest_filename) == 0)
     {
-#ifdef USE_KITTEN
        error(1,11,"File cannot be copied onto itself");
-#else
-       error("File cannot be copied onto itself");
-#endif
        return;
     }
 
@@ -414,11 +392,7 @@ static void prepare_move(char *src_filename, char *dest_filename)
 	if (!dir_exists(src_filename) &&
 	    (dir_exists(dest_filename)))
 	{
-#ifdef USE_KITTEN
 	   error(1,12,"Cannot move a file to a directory");
-#else
-	   error("Cannot move a file to a directory");
-#endif
 	   return;
 	}
 
@@ -426,67 +400,39 @@ static void prepare_move(char *src_filename, char *dest_filename)
         {
             do {
                 /* Ask for confirmation to create file. */
-#ifdef USE_KITTEN
-		printf("%s %s", dest_filename, kittengets(1,1,"already exists!"));
-		printf(" %s [%s/%s/%s/%s]? ", kittengets(1,2,"Overwrite file"),
-				kittengets(2,0,"Y"), kittengets(2,1,"N"),
-				kittengets(2,2,"All"), kittengets(2,3,"None"));
-#else
-		printf("%s already exists!", dest_filename);
-		printf(" Overwrite file [Y/N/All/None]? ");
-#endif
+		printf("%s %s", dest_filename, catgets(cat, 1,1,"already exists!"));
+		printf(" %s [%s/%s/%s/%s]? ", catgets(cat, 1,2,"Overwrite file"),
+		catgets(cat, 2,0,"Y"), catgets(cat, 2,1,"N"),
+		catgets(cat, 2,2,"All"), catgets(cat, 2,3,"None"));
 		scanf("%4s", &input);
 		puts("");
                 fflush(stdin);
 				
 		if (strlen(input) == 1)
 		{		
-#ifdef USE_KITTEN
-		    if (stricmp(input, kittengets(2,1,"N")) == 0)
-#else
-		    ch=toupper(input[0]);
-                    if (ch == 'N') /* No-skip file. */
-#endif
+		    if (stricmp(input, catgets(cat, 2,1,"N")) == 0)
 		    {
 			return;
                     } /* end if. */
 		}
 		else
 		{
-#ifdef USE_KITTEN
-		    if (stricmp(input, kittengets(2,2,"All")) == 0)
-#else
-		    ch = 0;
-		    if (stricmp(input, "ALL") == 0)
-#endif
+		    if (stricmp(input, catgets(cat, 2,2,"All")) == 0)
 		    {
 			opt_prompt = OVERWRITE;
 		    }
-#ifdef USE_KITTEN
-		    if (stricmp(input, kittengets(2,3,"None")) == 0)
-#else
-		    if (stricmp(input, "NONE") == 0)
-#endif
+		    if (stricmp(input, catgets(cat, 2,3,"None")) == 0)
 		    {
 			opt_prompt = SKIP;
 			return;
 		    }
 		}
 
-
-#ifdef USE_KITTEN
-	    } while ((stricmp(input, kittengets(2,0,"Y")) != 0) && (stricmp(input, kittengets(2,2,"All")) != 0));
-#else
-            } while ((ch != 'Y') && (stricmp(input, "ALL") != 0));
-#endif
+	    } while ((stricmp(input, catgets(cat, 2,0,"Y")) != 0) && (stricmp(input, catgets(cat, 2,2,"All")) != 0));
         }
 	else if (opt_prompt == SKIP)
 	{
-#ifdef USE_KITTEN
 	    error(1,13,"File already exists");
-#else
-	    error("File already exists");
-#endif
 	    return;
 	}
     }
@@ -494,24 +440,16 @@ static void prepare_move(char *src_filename, char *dest_filename)
     /* Check if source and destination file are equal. */
     if (stricmp(src_filename, dest_filename) == 0)
     {
-#ifdef USE_KITTEN
 	error(1,14,"File cannot be copied onto itself");
-	kittenclose();
-#else
-	error("File cannot be copied onto itself");
-#endif
+	catclose(cat);
 	exit(4);
     } /* end if. */
 
     /* Check source file for read permission. */
     if (access(src_filename, R_OK) != 0)
     {
-#ifdef USE_KITTEN
 	error(1,15,"Access denied");
-	kittenclose();
-#else
-	error("Access denied");
-#endif
+	catclose(cat);
 	exit(5);
     } /* end if. */
 
@@ -525,24 +463,16 @@ static void prepare_move(char *src_filename, char *dest_filename)
     /* Check free space on destination disk. */
     if (src_statbuf.st_size>free_diskspace)
     {
-#ifdef USE_KITTEN
 	error(1,16,"Insufficient disk space in destination path");
-	kittenclose();
-#else
-	error("Insufficient disk space in destination path");
-#endif
+	catclose(cat);
 	exit(39);
     } /* end if. */
 
     /* Check free space on destination disk. */
     if (src_statbuf.st_size>free_diskspace)
     {
-#ifdef USE_KITTEN
 	error(1,17,"Insufficient disk space");
-	kittenclose();
-#else
-	error("Insufficient disk space");
-#endif
+	catclose(cat);
 	exit(39);
     } /* end if. */
 
@@ -566,11 +496,7 @@ static void do_move(const char *src_filename, const char *dest_filename)
         { /* Rename a directory */
 	   if (!RenameTree(src_filename, dest_filename))
 	   {
-#ifdef USE_KITTEN
-	       printf("\n%s: %s\n", kittengets(1,3,"Problem moving directory"), src_filename);
-#else
-	       printf("\nProblem moving directory: %s\n", src_filename);
-#endif
+	       printf("\n%s: %s\n", catgets(cat, 1,3,"Problem moving directory"), src_filename);
 	       return;
 	   }
 	}
@@ -579,20 +505,12 @@ static void do_move(const char *src_filename, const char *dest_filename)
 	   unlink(dest_filename);
            if (rename(src_filename, dest_filename) == 1)
 	   {
-#ifdef USE_KITTEN
-	       printf("\n%s: %s\n", kittengets(1,4,"Problem moving file"), src_filename);
-#else
-	       printf("\nProblem moving file: %s\n", src_filename);
-#endif
+	       printf("\n%s: %s\n", catgets(cat, 1,4,"Problem moving file"), src_filename);
 	       return;
 	   }	   
 	}
 	
-#ifdef USE_KITTEN
-	printf(" [%s]\n", kittengets(2,4,"ok"));
-#else
-	printf(" [ok]\n");
-#endif
+	printf(" [%s]\n", catgets(cat, 2,4,"ok"));
         return;
     }
 
@@ -601,11 +519,7 @@ static void do_move(const char *src_filename, const char *dest_filename)
     { /* Move a directory */         
         if (!MoveDirectory(src_filename, dest_filename))
 	{
-#ifdef USE_KITTEN
-	    printf("\n%s: %s\n", kittengets(1,3,"Problem moving directory"), src_filename);
-#else
-            printf("\nProblem moving directory: %s\n", src_filename);
-#endif
+	    printf("\n%s: %s\n", catgets(cat, 1,3,"Problem moving directory"), src_filename);
 	    return;
 	}
     }
@@ -613,21 +527,13 @@ static void do_move(const char *src_filename, const char *dest_filename)
     { /* Move a file */ 
        if (!copy_file(src_filename, dest_filename))
        {   
-#ifdef USE_KITTEN
-	  printf("\n%s: %s\n", kittengets(1,4,"Problem moving file"), src_filename);
-#else
-          printf("\nProblem moving file: %s\n", src_filename);
-#endif
+	  printf("\n%s: %s\n", catgets(cat, 1,4,"Problem moving file"), src_filename);
 	  return;
        }
 
        unlink(src_filename); /* Delete file. */
     }
-#ifdef USE_KITTEN
-    printf(" [%s]\n", kittengets(2,4,"ok"));
-#else
-    printf(" [ok]\n");
-#endif
+    printf(" [%s]\n", catgets(cat, 2,4,"ok"));
 
 } /* end do_move. */
 
@@ -638,52 +544,26 @@ static void do_move(const char *src_filename, const char *dest_filename)
 
 static void Usage(char switchch)
 {
-#ifdef USE_KITTEN
-    printf("%s " VERSION "\n", kittengets(0,0,"Move"));
-    printf("%s\n",  kittengets(0,1,"Moves a file/directory to another location."));
-    printf("%s\n",  kittengets(0,2,"(C) 1997-2002 by Joe Cosentino"));
-    printf("%s\n\n",kittengets(0,3,"(C) 2003-2004 by Imre Leber"));
-    printf("%s [%cY | %c-Y] %s\n", kittengets(0,4,"Syntax: MOVE"),
-		    switchch, switchch, kittengets(0,5,"source1[, source2[,...]] destination"));
-    printf("%s\n",  kittengets(0,6," source      The name of the file or directory you want to move (rename)"));
-    printf("%s\n",  kittengets(0,7," destination Where you want to move the file(s) to"));
+    printf("%s " VERSION "\n", catgets(cat, 0,0,"Move"));
+    printf("%s\n",  catgets(cat, 0,1,"Moves a file/directory to another location."));
+    printf("%s\n",  catgets(cat, 0,2,"(C) 1997-2002 by Joe Cosentino"));
+    printf("%s\n\n",catgets(cat, 0,3,"(C) 2003-2004 by Imre Leber"));
+    printf("%s [%cY | %c-Y] %s\n", catgets(cat, 0,4,"Syntax: MOVE"),
+		    switchch, switchch, catgets(cat, 0,5,"source1[, source2[,...]] destination"));
+    printf("%s\n",  catgets(cat, 0,6," source      The name of the file or directory you want to move (rename)"));
+    printf("%s\n",  catgets(cat, 0,7," destination Where you want to move the file(s) to"));
     printf(" %cY%s\n",switchch,
-		    kittengets(0,8,"          Supresses prompting to confirm you want to overwrite"));
-    printf("%s\n",  kittengets(0,9,"             an existing destination file."));
+		    catgets(cat, 0,8,"          Supresses prompting to confirm you want to overwrite"));
+    printf("%s\n",  catgets(cat, 0,9,"             an existing destination file."));
     printf(" %c-Y%s\n",switchch,
-		    kittengets(0,10,"         Causes prompting to confirm you want to overwrite an"));
-    printf("%s\n",  kittengets(0,11,"             existing destination file."));
+		    catgets(cat, 0,10,"         Causes prompting to confirm you want to overwrite an"));
+    printf("%s\n",  catgets(cat, 0,11,"             existing destination file."));
     printf(" %cV%s\n",switchch,
-		    kittengets(0,12,"          Verifies each file as it is written to the destination file"));
-    printf("%s\n",  kittengets(0,13,"             to make sure that the destination files are identical to the"));
-    printf("%s\n\n",kittengets(0,14,"             source files"));
-    printf("%s\n",  kittengets(0,15,"Remark:"));
-    printf("\t%s\n",kittengets(0,16,"You can move directories with this tool"));
-#else
-    printf("Move " VERSION "\n"
-	   "Moves a file/directory to another location.\n"
-	   "(C) 1997-2002 by Joe Cosentino\n"
-	   "(C) 2003-2004 by Imre Leber\n\n"
-	   "Syntax: MOVE [%cY | %c-Y] [%cV] source1[, source2[,...]] destination\n"
-	   " source      The name of the file or directory you want to move (rename)\n"
-	   " destination Where you want to move the file(s) to\n"
-	   " %cY          Supresses prompting to confirm you want to overwrite\n"
-	   "             an existing destination file.\n"
-	   " %c-Y         Causes prompting to confirm you want to overwrite an\n"
-	   "             existing destination file.\n"
-	   " %cV          Verifies each file as it is written to the destination file\n"
-	   "             to make sure that the destination files are identical to the\n"
-	   "             source files\n"
-	   "\n"
-	   "Remark:\n"
-	   "\tYou can move directories with this tool\n",
-	   switchch,
-           switchch,
-           switchch,
-           switchch,
-           switchch,
-           switchch);
-#endif
+		    catgets(cat, 0,12,"          Verifies each file as it is written to the destination file"));
+    printf("%s\n",  catgets(cat, 0,13,"             to make sure that the destination files are identical to the"));
+    printf("%s\n\n",catgets(cat, 0,14,"             source files"));
+    printf("%s\n",  catgets(cat, 0,15,"Remark:"));
+    printf("\t%s\n",catgets(cat, 0,16,"You can move directories with this tool"));
 }
 
 /*-------------------------------------------------------------------------*/
@@ -697,9 +577,7 @@ int main(int argc, char *argv[])
     char *ptr,option[255]="",i,environ[255],src_filename[MAXFILE+MAXEXT]="",dest_filename[MAXFILE+MAXEXT]="";
     int length, movedirs = 0;
 
-#ifdef USE_KITTEN
-    kittenopen("move"); /* Open the message catalog */
-#endif
+    cat = catopen("move", 0); /* Open the message catalog */
 
     classify_args(argc, argv, &fileargc, fileargv, &optargc, optargv);
     atexit(exit_fn);
@@ -724,9 +602,7 @@ int main(int argc, char *argv[])
              || stricmp(optargv[0], "h") == 0))
     {
         Usage(switchch);
-#ifdef USE_KITTEN
-	kittenclose();
-#endif
+	catclose(cat);
         exit(0);
     }
 
@@ -746,12 +622,8 @@ int main(int argc, char *argv[])
 	    movedirs = 1;
 	else
 	{
-#ifdef USE_KITTEN
-	    printf("%s-%s\n", kittengets(1,5,"Invalid parameter"), optargv[i]);
-	    kittenclose();
-#else
-            printf("Invalid parameter-%s\n", optargv[i]);
-#endif
+	    printf("%s-%s\n", catgets(cat, 1,5,"Invalid parameter"), optargv[i]);
+	    catclose(cat);
             exit(4);
         } /* end else. */
 
@@ -759,23 +631,15 @@ int main(int argc, char *argv[])
 
     if (fileargc<2)
     {
-#ifdef USE_KITTEN
 	error(1,18,"Required parameter missing");
-	kittenclose();
-#else
-	error("Required parameter missing");
-#endif
+	catclose(cat);
 	return 1;
     } /* end if. */
 
     if (!extract_sources(fileargc-1, fileargv))
     {
-#ifdef USE_KITTEN
 	error(1,19,"Invalid source specification");
-	kittenclose();
-#else
-	error("Invalid source specification");
-#endif
+	catclose(cat);
 	return 4;
     }
 
@@ -784,12 +648,8 @@ int main(int argc, char *argv[])
     {
         if (SourcePaths[i][0] == '\0')
         {
-#ifdef USE_KITTEN
-	    printf("%s\n", kittengets(1,8,"Invalid source drive specification"));
-	    kittenclose();
-#else
-            printf("Invalid source drive specification\n");
-#endif
+	    printf("%s\n", catgets(cat, 1,8,"Invalid source drive specification"));
+	    catclose(cat);
             exit(4);
         } /* end if. */
 
@@ -801,12 +661,8 @@ int main(int argc, char *argv[])
         *ptr='\0';
         if (!dir_exists(SourcePaths[i]))
         {
-#ifdef USE_KITTEN
 	    error(1,20,"Source path not found");
-	    kittenclose();
-#else
-            error("Source path not found");
-#endif
+	    catclose(cat);
             exit(4);
         } /* end if. */
 
@@ -815,12 +671,8 @@ int main(int argc, char *argv[])
         length=strlen(SourcePaths[i]);
 	if (length>(MAXDRIVE-1+MAXDIR-1))
 	{
-#ifdef USE_KITTEN
 	   error(1,21,"Source path too long\n");
-	   kittenclose();
-#else
-	   error("Source path too long\n");
-#endif
+	   catclose(cat);
 	   exit(4);
         } /* end if. */
 
@@ -837,34 +689,22 @@ int main(int argc, char *argv[])
            length=strlen(fileargv[fileargc-1]);
 	   if (length>(MAXPATH-1))
 	   {
-#ifdef USE_KITTEN
 	      error(1,22,"Destination path too long\n");
-	      kittenclose();
-#else
-	      error("Destination path too long\n");
-#endif
+	      catclose(cat);
 	      exit(4);
             } /* end if. */
 
 	    if (!FullPath(dest_pathname, fileargv[fileargc-1]))
 	    {
-#ifdef USE_KITTEN
-		printf("%s\n", kittengets(1,7,"Invalid destination file"));
-		kittenclose();
-#else
-		printf("Invalid destination file\n");
-#endif
+		printf("%s\n", catgets(cat, 1,7,"Invalid destination file"));
+		catclose(cat);
 		exit(1);
 	     }
 
 	    if (dest_pathname[0] == '\0')
 	    {
-#ifdef USE_KITTEN
 		error(1,23,"Invalid destination drive specification\n");
-		kittenclose();
-#else
-		error("Invalid destination drive specification\n");
-#endif
+		catclose(cat);
 		exit(4);
             } /* end if. */
 
@@ -879,49 +719,26 @@ int main(int argc, char *argv[])
 		     (ContainsWildCards(src_filename))) &&
 		    (strchr(fileargv[fileargc-1], '*'|'?') != NULL))
 		{
-#ifdef USE_KITTEN
 		      char ch[2] = "0";
-#else
-		      char ch = 0;
-#endif
 
-#ifdef USE_KITTEN
-		      while (stricmp(ch, kittengets(2,1,"N")) != 0)
-#else
-		      while ((ch != 'n') && (ch != 'N'))
-#endif
+		      while (stricmp(ch, catgets(cat, 2,1,"N")) != 0)
 		      {
-#ifdef USE_KITTEN
 			  printf("%s %s [%s/%s] ", fileargv[fileargc-1],
-				 kittengets(1,8," does not exist as directory. Create it?"),
-				 kittengets(2,0,"Y"), kittengets(2,1,"N"));
+				 catgets(cat, 1,8," does not exist as directory. Create it?"),
+				 catgets(cat, 2,0,"Y"), catgets(cat, 2,1,"N"));
 			  scanf("%s", &ch);
-#else
-			  printf("%s does not exist as directory. Create it? [Y/N] ",
-				 fileargv[fileargc-1]);
-			  scanf("%c", &ch);
-#endif
 			  puts("");
 
-#ifdef USE_KITTEN
-			  if (stricmp(ch, kittengets(2,0,"Y")) == 0)
-#else
-			  if ((ch == 'Y') || (ch == 'y'))
-#endif
+			  if (stricmp(ch, catgets(cat, 2,0,"Y")) == 0)
 			  {
 			     strncpy(dest_filename, "*.*", sizeof(dest_filename));
 			     break;
 			  }
 		      }
 
-#ifdef USE_KITTEN
-		      if (stricmp(ch, kittengets(2,1,"N")) == 0)
+		      if (stricmp(ch, catgets(cat, 2,1,"N")) == 0)
 		      {
-			 kittenclose();
-#else
-		      if ((ch == 'n') || (ch == 'N'))
-		      {
-#endif
+			 catclose(cat);
 			 exit(0);
 		      }
 		}
@@ -945,12 +762,8 @@ int main(int argc, char *argv[])
 	length=strlen(dest_pathname);
 	if (length>(MAXDRIVE-1+MAXDIR-1))
 	{
-#ifdef USE_KITTEN
 	   error(1,24,"Destination path too long\n");
-	   kittenclose();
-#else
-	   error("Destination path too long\n");
-#endif
+	   catclose(cat);
 	   exit(4);
         } /* end if. */
 
@@ -961,9 +774,7 @@ int main(int argc, char *argv[])
 	move_files(SourcePaths[i], src_filename, dest_pathname, dest_filename, movedirs);
     }
 
-#ifdef USE_KITTEN
-    kittenclose();
-#endif
+    catclose(cat);
     return 0;
 
 } /* end main. */

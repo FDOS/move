@@ -26,9 +26,8 @@
 #include <dos.h>
 #include <sys/stat.h>
 
-#ifdef USE_KITTEN
-#include "kitten.h"   /* Translation functions */
-#endif
+#include "../kitten/kitten.h"
+
 #include "movedir.h"  /* MoveDirectory, MoveTree */
 #include "misc.h"     /* addsep, dir_exist, SplitPath, strmcpy,
                          strmcat, error, copy_file, build_filename,
@@ -222,11 +221,7 @@ static int CopyTree(const char *src_pathname,
 
     if (makedir(tmp_pathname) != 0)
     {
-#ifdef USE_KITTEN
       error(1,28,"Unable to create directory");
-#else
-      error("Unable to create directory");
-#endif
       return 0;
     }
   }
@@ -282,11 +277,7 @@ static int xcopy_file(const char *src_filename,
   /* check free space on destination disk */
   if (src_statbuf.st_size > free_diskspace) 
   {
-#ifdef USE_KITTEN
       error(1,29,"Insufficient disk space in destination path");
-#else
-      error("Insufficient disk space in destination path");
-#endif
       return(0);
   }
 
