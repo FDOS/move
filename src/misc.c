@@ -26,59 +26,6 @@
 
 extern nl_catd cat;
 
-#ifdef __WATCOMC__
-#pragma pack(1)
-#define DOS_GETFTIME _dos_getftime
-#define DOS_SETFTIME _dos_setftime
-
-/*-------------------------------------------------------------------------*/
-/* getftime - get file date                                                */
-/*-------------------------------------------------------------------------*/
-
-int _cdecl getftime (int handle, struct ftime *ftimep)
-{
-      int retval = 0;
-      union
-      {
-            struct
-            {
-                  unsigned time;
-                  unsigned date;
-            } msc_time;
-            struct ftime bc_time;
-      } FTIME;
-
-      if (0 == (retval = DOS_GETFTIME(handle, (unsigned short *)&FTIME.msc_time.date,
-            (unsigned short *)&FTIME.msc_time.time)))
-      {
-            *ftimep = FTIME.bc_time;
-      }
-      return retval;
-}
-
-/*-------------------------------------------------------------------------*/
-/* setftime - set file date                                                */
-/*-------------------------------------------------------------------------*/
-
-int _cdecl setftime (int handle, struct ftime *ftimep)
-{
-      union
-      {
-            struct
-            {
-                  unsigned time;
-                  unsigned date;
-            } msc_time;
-            struct ftime bc_time;
-      } FTIME;
-
-      FTIME.bc_time = *ftimep;
-
-      return DOS_SETFTIME(handle, FTIME.msc_time.date, FTIME.msc_time.time);
-}
-#pragma pack()
-#endif /* __WATCOMC__  */
-
 #ifndef INLINE
 /*-------------------------------------------------------------------------*/
 /* Extracts the different parts of a path name            		   */
@@ -312,13 +259,11 @@ void build_filename(char *dest_filename,const char *src_filename,const char
 int copy_file(const char *src_filename,
                const char *dest_filename)
 {
-  FILE *src_file,
-       *dest_file;
+  FILE *src_file, *dest_file;
   static char buffer[16384];
   unsigned int buffersize;
   int readsize;
-  unsigned fileattrib;
-  struct ftime filetime;
+  unsigned fileattrib, date, time;
 
 
   /* open source file */
@@ -354,8 +299,8 @@ int copy_file(const char *src_filename,
   }
 
   /* copy file timestamp */
-  getftime(fileno(src_file), &filetime);
-  setftime(fileno(dest_file), &filetime);
+  _dos_getftime(fileno(src_file), &date, &time);
+  _dos_setftime(fileno(dest_file), date, time);
 
   /* close files */
   fclose(src_file);
