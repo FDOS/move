@@ -95,7 +95,8 @@ static void AddAllWildCard(char* path)
 
 static int DelTree(const char* path)
 {
-    int found, attrib;
+    int found;
+    unsigned attrib;
     char temppath[MAXPATH];
     char temppath1[MAXPATH];
     char origpath[MAXPATH];
@@ -151,10 +152,10 @@ static int DelTree(const char* path)
                * clearing directory bit (but the directory will not be 
                * changed to a normal file)
                */
-              if ((attrib = _chmod(temppath, 0)) == -1)
+              if (_dos_getfileattr(temppath, &attrib) != 0)
                  return 0;
               attrib &= ~FA_RDONLY;
-              if (_chmod(temppath, 1, attrib & ~FA_DIREC) == -1)
+              if (_dos_setfileattr(temppath, attrib & ~FA_DIREC) != 0)
                  return 0;
 
               if (rmdir(temppath) == -1)
@@ -184,8 +185,8 @@ static int CopyTree(const char *src_pathname,
        tmp_filename[MAXFILE + MAXEXT],
        tmp_pathname[MAXPATH];
   struct ffblk fileblock;
-  int fileattrib,
-      done;
+  unsigned fileattrib;
+  int done;
 
   /* copy files in subdirectories  */
   strmcpy(filepattern, src_pathname, sizeof(filepattern));
@@ -346,7 +347,8 @@ int MoveDirectory(const char* src_filename, const char* dest_filename)
 
 int RenameTree(const char* src_filename, const char* dest_filename)
 {    
-    int found, attrib;
+    int found;
+    unsigned attrib;
     char temppath[MAXPATH];
     char temppath1[MAXPATH];
     char origpath[MAXPATH];
@@ -443,11 +445,11 @@ int RenameTree(const char* src_filename, const char* dest_filename)
                * clearing directory bit (but the directory will not be 
                * changed to a normal file)
                */
-              if ((attrib = _chmod(temppath, 0)) == -1)
+              if (_dos_getfileattr(temppath, &attrib) != 0)
                  return 0;
               attrib &= ~FA_RDONLY;
-              if (_chmod(temppath, 1, attrib & ~FA_DIREC) == -1)
-	         return 0;
+              if (_dos_setfileattr(temppath, attrib & ~FA_DIREC) != 0)
+                 return 0;
 
 	      if (rmdir(temppath) == -1)
 	         return 0;
