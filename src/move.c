@@ -313,7 +313,8 @@ static void move_files(const char *src_pathname, const char *src_filename,
     char filepattern[MAXPATH],src_path_filename[MAXPATH],dest_path_filename[MAXPATH];
     char tmp_filename[MAXFILE+MAXEXT],tmp_pathname[MAXPATH];
     struct ffblk fileblock;
-    int fileattrib, done;
+    unsigned fileattrib;
+    int done;
 
     fileattrib=FA_RDONLY+FA_ARCH+FA_SYSTEM;
 

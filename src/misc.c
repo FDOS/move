@@ -32,28 +32,7 @@ extern nl_catd cat;
 #define DOS_SETFTIME _dos_setftime
 
 /*-------------------------------------------------------------------------*/
-/* _chmod - get/set file attributes                                        */
-/*-------------------------------------------------------------------------*/
-
-static int _chmod(const char *filename, int func, ...)
-{
-	va_list l;
-	int attributes;
-	unsigned attr;
-	va_start(l, func);
-	attributes = va_arg(l, int);
-	va_end(l);
-	if (func == 0)
-	{
-		if (_dos_getfileattr(filename, &attr) != 0) return -1;
-		return attr;
-	}
-	if (_dos_setfileattr(filename, attributes) != 0) return -1;
-	return 0;
-}
-
-/*-------------------------------------------------------------------------*/
-/* _chmod - get file date                                                  */
+/* getftime - get file date                                                */
 /*-------------------------------------------------------------------------*/
 
 int _cdecl getftime (int handle, struct ftime *ftimep)
@@ -78,7 +57,7 @@ int _cdecl getftime (int handle, struct ftime *ftimep)
 }
 
 /*-------------------------------------------------------------------------*/
-/* _chmod - set file date                                                  */
+/* setftime - set file date                                                */
 /*-------------------------------------------------------------------------*/
 
 int _cdecl setftime (int handle, struct ftime *ftimep)
@@ -189,7 +168,7 @@ char *addsep(char *path)
 int dir_exists(const char *path)
 {
     char tmp_path[MAXPATH],i;
-    int attrib;
+    unsigned attrib;
 
     strmcpy(tmp_path, path, sizeof(tmp_path));
     i=strlen(tmp_path);
@@ -207,8 +186,7 @@ int dir_exists(const char *path)
 
     } /* end else. */
 
-    attrib=_chmod(tmp_path, 0);
-    if (attrib == -1 || (attrib & FA_DIREC) == 0)
+    if (_dos_getfileattr(tmp_path, &attrib) != 0 || (attrib & FA_DIREC) == 0)
     {
 	return 0;
     } /* end if. */
@@ -336,7 +314,8 @@ int copy_file(const char *src_filename,
        *dest_file;
   static char buffer[16384];
   unsigned int buffersize;
-  int readsize, fileattrib;
+  int readsize;
+  unsigned fileattrib;
   struct ftime filetime;
 
 
@@ -381,8 +360,8 @@ int copy_file(const char *src_filename,
   fclose(dest_file);
 
   /* copy file attributes */
-  fileattrib = _chmod(src_filename, 0);
-  _chmod(dest_filename, 1, fileattrib);
+  if (_dos_getfileattr(src_filename, &fileattrib) == 0)
+      _dos_setfileattr(dest_filename, fileattrib);
 
   return 1;
 }
