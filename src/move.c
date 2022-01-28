@@ -83,7 +83,7 @@ nl_catd cat;
 /* P R O T O T Y P E S */
 /*------------------------------------------------------*/
 
-static void classify_args(char, char *[], char *, char *[], char *, char *[]);
+static void classify_args(char, char *[], int *, char *[], int *, char *[]);
 static void exit_fn(void);
 static void move_files(const char *, const char *, const char *, const char *, int);
 static void prepare_move(char *, char *);
@@ -263,10 +263,11 @@ static int extract_sources(int fileargc, char** fileargv)
 /* Splits the program arguments into file and switch arguments.            */
 /*-------------------------------------------------------------------------*/
 
-static void classify_args(char argc, char *argv[], char *fileargc,
-                          char *fileargv[], char *optargc, char *optargv[])
+static void classify_args(char argc, char *argv[], int *fileargc,
+                          char *fileargv[], int *optargc, char *optargv[])
 {
-    char i, *argptr;
+    int i;
+    char *argptr;
 
     *fileargc=0;
     *optargc=0;
@@ -579,8 +580,9 @@ static void Usage(char switchch)
 int main(int argc, char *argv[])
 {
     char switchch = SwitchChar();
-    char fileargc,*fileargv[255],optargc,*optargv[255],dest_pathname[MAXPATH]="";
-    char *ptr,option[255]="",i,environ[255],src_filename[MAXFILE+MAXEXT]="",dest_filename[MAXFILE+MAXEXT]="";
+    int i, fileargc, optargc;
+    char *fileargv[255], *optargv[255], dest_pathname[MAXPATH]="";
+    char *ptr, option[255]="", environ[255], src_filename[MAXFILE+MAXEXT]="", dest_filename[MAXFILE+MAXEXT]="";
     int length, movedirs = 0;
 
     cat = catopen("move", 0); /* Open the message catalog */

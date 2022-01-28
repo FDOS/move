@@ -167,7 +167,8 @@ char *addsep(char *path)
 
 int dir_exists(const char *path)
 {
-    char tmp_path[MAXPATH],i;
+    char tmp_path[MAXPATH];
+    int i;
     unsigned attrib;
 
     strmcpy(tmp_path, path, sizeof(tmp_path));
@@ -201,7 +202,8 @@ int dir_exists(const char *path)
 
 int makedir(char *path)
 {
-    char tmp_path1[MAXPATH],tmp_path2[MAXPATH],i,length,mkdir_error;
+    char tmp_path1[MAXPATH], tmp_path2[MAXPATH], length, mkdir_error;
+    int i;
 
     if (path[0] == '\0')
     {
