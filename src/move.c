@@ -118,28 +118,29 @@ static char SwitchChar(void)
        return '/';
 }
 
-#ifdef __WATCOMC__
+#if defined(__WATCOMC__) || defined(__GNUC__)
 
 /*---------------------------------------------------------------------*/
 /* Returns the DOS verify flag.                                        */
 /*---------------------------------------------------------------------*/
 static int getverify(void)
 {
-     union REGS regs;
+    union REGS regs;
 
-     regs.x.ax = 0x5400;
-     intdos(&regs, &regs);
-     return regs.h.dl;
+    regs.x.ax = 0x5400;
+    intdos(&regs, &regs);
+    return regs.h.al;
 }
 
 /*---------------------------------------------------------------------*/
 static void setverify(int value)
 {
-	union REGS regs;
+    union REGS regs;
 	
-	regs.x.ax = 0x2E;
-	regs.h.dl = value;
-	intdos(&regs, &regs);
+    regs.h.ah = 0x2e;
+    regs.h.al = value;
+    regs.h.dh = 0;
+    intdos(&regs, &regs);
 }
 
 #endif /* __WATCOMC__ */
