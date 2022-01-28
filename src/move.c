@@ -409,7 +409,7 @@ static void prepare_move(char *src_filename, char *dest_filename)
 		printf(" %s [%s/%s/%s/%s]? ", catgets(cat, 1,2,"Overwrite file"),
 		catgets(cat, 2,0,"Y"), catgets(cat, 2,1,"N"),
 		catgets(cat, 2,2,"All"), catgets(cat, 2,3,"None"));
-		scanf("%4s", &input);
+		scanf("%4s", input);
 		puts("");
                 fflush(stdin);
 				
@@ -731,7 +731,7 @@ int main(int argc, char *argv[])
 			  printf("%s %s [%s/%s] ", fileargv[fileargc-1],
 				 catgets(cat, 1,8," does not exist as directory. Create it?"),
 				 catgets(cat, 2,0,"Y"), catgets(cat, 2,1,"N"));
-			  scanf("%s", &ch);
+			  scanf("%s", ch);
 			  puts("");
 
 			  if (stricmp(ch, catgets(cat, 2,0,"Y")) == 0)
