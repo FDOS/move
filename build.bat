@@ -26,14 +26,21 @@ set EXEFLAGS=-mc -N -Z -O -k-
 set CFLAGS=-w -M -Z -O -k- %EXEFLAGS% -e
 rem tcc looks for includes from the current directory, not the location of the
 rem file that's trying to include them, so add kitten's location
-set CFLAGS=-I../kitten %CFLAGS%
+set CFLAGS=-I../kitten -I../tnyprntf %CFLAGS%
 goto doit
 
 :doit
-set EXTRA_SRCS=../kitten/kitten.c
-rem # if you want to build without kitten uncomment the following
+set EXTRA_OBJS=
+
+set EXTRA_OBJS=%EXTRA_OBJS% tnyprntf.obj
+rem # if you want to build without tnyprntf comment the above and uncomment
+rem the following
+rem set CFLAGS=-DNOPRNTF %CFLAGS%
+
+set EXTRA_OBJS=%EXTRA_OBJS% kitten.obj
+rem # if you want to build without kitten comment the above and uncomment
+rem the following
 rem set CFLAGS=-DNOCATS %CFLAGS%
-rem set EXTRA_SRCS=
 
 set UPXARGS=upx --8086 --best
 rem if you don't want to use UPX set

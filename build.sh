@@ -33,10 +33,17 @@ else
   exit 1
 fi
 
-export EXTRA_SRCS=../kitten/kitten.c
-# if you want to build without kitten uncomment the following
+export EXTRA_OBJS=
+
+export EXTRA_OBJS="${EXTRA_OBJS} tnyprntf.obj"
+# if you want to build without tnyprntf comment the above and uncomment
+# the following
+# export CFLAGS="-DNOPRNTF ${CFLAGS}"
+
+export EXTRA_OBJS="${EXTRA_OBJS} kitten.obj"
+# if you want to build without kitten comment the above and uncomment
+# the following
 # export CFLAGS="-DNOCATS ${CFLAGS}"
-# export EXTRA_SRCS=
 
 export UPXARGS="upx --8086 --best"
 # if you don't want to use UPX set

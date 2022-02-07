@@ -21,6 +21,7 @@
 #include <sys/stat.h>
 
 #include "../kitten/kitten.h"
+#include "../tnyprntf/tnyprntf.h"
 
 #include "misc.h"
 

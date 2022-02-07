@@ -52,6 +52,7 @@
 #include <sys/stat.h>
 
 #include "../kitten/kitten.h"
+#include "../tnyprntf/tnyprntf.h"
 
 #include "version.h"
 #include "movedir.h" /* MoveDirectory, MoveTree */
@@ -333,9 +334,9 @@ static void move_files(const char *src_pathname, const char *src_filename,
     if (done)
     {
        char buffer[80];
-       sprintf(buffer, "%s%s %s", src_pathname, src_filename, catgets(cat, 1,0,"does not exist!"));
+       SPRINTF(buffer, "%s%s %s", src_pathname, src_filename, catgets(cat, 1,0,"does not exist!"));
        /* error */
-       fprintf(stderr, " [%s]\n", buffer);
+       PRINTF(" [%s]\n", buffer);
     }
 
     /* Check if destination directory has to be created. */
@@ -408,8 +409,8 @@ static void prepare_move(char *src_filename, char *dest_filename)
         {
             do {
                 /* Ask for confirmation to create file. */
-		printf("%s %s", dest_filename, catgets(cat, 1,1,"already exists!"));
-		printf(" %s [%s/%s/%s/%s]? ", catgets(cat, 1,2,"Overwrite file"),
+		PRINTF("%s %s", dest_filename, catgets(cat, 1,1,"already exists!"));
+		PRINTF(" %s [%s/%s/%s/%s]? ", catgets(cat, 1,2,"Overwrite file"),
 		catgets(cat, 2,0,"Y"), catgets(cat, 2,1,"N"),
 		catgets(cat, 2,2,"All"), catgets(cat, 2,3,"None"));
 		scanf("%4s", input);
@@ -494,7 +495,7 @@ static void prepare_move(char *src_filename, char *dest_filename)
 
 static void do_move(const char *src_filename, const char *dest_filename)
 {
-    printf("%s => %s", src_filename, dest_filename);
+    PRINTF("%s => %s", src_filename, dest_filename);
 
     if ((src_filename[0] == dest_filename[0]) &&
         (src_filename[1] == dest_filename[1]) &&
@@ -504,7 +505,7 @@ static void do_move(const char *src_filename, const char *dest_filename)
         { /* Rename a directory */
 	   if (!RenameTree(src_filename, dest_filename))
 	   {
-	       printf("\n%s: %s\n", catgets(cat, 1,3,"Problem moving directory"), src_filename);
+	       PRINTF("\n%s: %s\n", catgets(cat, 1,3,"Problem moving directory"), src_filename);
 	       return;
 	   }
 	}
@@ -513,12 +514,12 @@ static void do_move(const char *src_filename, const char *dest_filename)
 	   unlink(dest_filename);
            if (rename(src_filename, dest_filename) == 1)
 	   {
-	       printf("\n%s: %s\n", catgets(cat, 1,4,"Problem moving file"), src_filename);
+	       PRINTF("\n%s: %s\n", catgets(cat, 1,4,"Problem moving file"), src_filename);
 	       return;
 	   }	   
 	}
 	
-	printf(" [%s]\n", catgets(cat, 2,4,"ok"));
+	PRINTF(" [%s]\n", catgets(cat, 2,4,"ok"));
         return;
     }
 
@@ -527,7 +528,7 @@ static void do_move(const char *src_filename, const char *dest_filename)
     { /* Move a directory */         
         if (!MoveDirectory(src_filename, dest_filename))
 	{
-	    printf("\n%s: %s\n", catgets(cat, 1,3,"Problem moving directory"), src_filename);
+	    PRINTF("\n%s: %s\n", catgets(cat, 1,3,"Problem moving directory"), src_filename);
 	    return;
 	}
     }
@@ -535,13 +536,13 @@ static void do_move(const char *src_filename, const char *dest_filename)
     { /* Move a file */ 
        if (!copy_file(src_filename, dest_filename))
        {   
-	  printf("\n%s: %s\n", catgets(cat, 1,4,"Problem moving file"), src_filename);
+	  PRINTF("\n%s: %s\n", catgets(cat, 1,4,"Problem moving file"), src_filename);
 	  return;
        }
 
        unlink(src_filename); /* Delete file. */
     }
-    printf(" [%s]\n", catgets(cat, 2,4,"ok"));
+    PRINTF(" [%s]\n", catgets(cat, 2,4,"ok"));
 
 } /* end do_move. */
 
@@ -552,26 +553,26 @@ static void do_move(const char *src_filename, const char *dest_filename)
 
 static void Usage(char switchch)
 {
-    printf("%s " VERSION "\n", catgets(cat, 0,0,"Move"));
-    printf("%s\n",  catgets(cat, 0,1,"Moves a file/directory to another location."));
-    printf("%s\n",  catgets(cat, 0,2,"(C) 1997-2002 by Joe Cosentino"));
-    printf("%s\n\n",catgets(cat, 0,3,"(C) 2003-2004 by Imre Leber"));
-    printf("%s [%cY | %c-Y] %s\n", catgets(cat, 0,4,"Syntax: MOVE"),
+    PRINTF("%s " VERSION "\n", catgets(cat, 0,0,"Move"));
+    PRINTF("%s\n",  catgets(cat, 0,1,"Moves a file/directory to another location."));
+    PRINTF("%s\n",  catgets(cat, 0,2,"(C) 1997-2002 by Joe Cosentino"));
+    PRINTF("%s\n\n",catgets(cat, 0,3,"(C) 2003-2004 by Imre Leber"));
+    PRINTF("%s [%cY | %c-Y] %s\n", catgets(cat, 0,4,"Syntax: MOVE"),
 		    switchch, switchch, catgets(cat, 0,5,"source1[, source2[,...]] destination"));
-    printf("%s\n",  catgets(cat, 0,6," source      The name of the file or directory you want to move (rename)"));
-    printf("%s\n",  catgets(cat, 0,7," destination Where you want to move the file(s) to"));
-    printf(" %cY%s\n",switchch,
+    PRINTF("%s\n",  catgets(cat, 0,6," source      The name of the file or directory you want to move (rename)"));
+    PRINTF("%s\n",  catgets(cat, 0,7," destination Where you want to move the file(s) to"));
+    PRINTF(" %cY%s\n",switchch,
 		    catgets(cat, 0,8,"          Supresses prompting to confirm you want to overwrite"));
-    printf("%s\n",  catgets(cat, 0,9,"             an existing destination file."));
-    printf(" %c-Y%s\n",switchch,
+    PRINTF("%s\n",  catgets(cat, 0,9,"             an existing destination file."));
+    PRINTF(" %c-Y%s\n",switchch,
 		    catgets(cat, 0,10,"         Causes prompting to confirm you want to overwrite an"));
-    printf("%s\n",  catgets(cat, 0,11,"             existing destination file."));
-    printf(" %cV%s\n",switchch,
+    PRINTF("%s\n",  catgets(cat, 0,11,"             existing destination file."));
+    PRINTF(" %cV%s\n",switchch,
 		    catgets(cat, 0,12,"          Verifies each file as it is written to the destination file"));
-    printf("%s\n",  catgets(cat, 0,13,"             to make sure that the destination files are identical to the"));
-    printf("%s\n\n",catgets(cat, 0,14,"             source files"));
-    printf("%s\n",  catgets(cat, 0,15,"Remark:"));
-    printf("\t%s\n",catgets(cat, 0,16,"You can move directories with this tool"));
+    PRINTF("%s\n",  catgets(cat, 0,13,"             to make sure that the destination files are identical to the"));
+    PRINTF("%s\n\n",catgets(cat, 0,14,"             source files"));
+    PRINTF("%s\n",  catgets(cat, 0,15,"Remark:"));
+    PRINTF("\t%s\n",catgets(cat, 0,16,"You can move directories with this tool"));
 }
 
 /*-------------------------------------------------------------------------*/
@@ -631,7 +632,7 @@ int main(int argc, char *argv[])
 	    movedirs = 1;
 	else
 	{
-	    printf("%s-%s\n", catgets(cat, 1,5,"Invalid parameter"), optargv[i]);
+	    PRINTF("%s-%s\n", catgets(cat, 1,5,"Invalid parameter"), optargv[i]);
 	    catclose(cat);
             exit(4);
         } /* end else. */
@@ -657,7 +658,7 @@ int main(int argc, char *argv[])
     {
         if (SourcePaths[i][0] == '\0')
         {
-	    printf("%s\n", catgets(cat, 1,8,"Invalid source drive specification"));
+	    PRINTF("%s\n", catgets(cat, 1,8,"Invalid source drive specification"));
 	    catclose(cat);
             exit(4);
         } /* end if. */
@@ -705,7 +706,7 @@ int main(int argc, char *argv[])
 
 	    if (!FullPath(dest_pathname, fileargv[fileargc-1]))
 	    {
-		printf("%s\n", catgets(cat, 1,7,"Invalid destination file"));
+		PRINTF("%s\n", catgets(cat, 1,7,"Invalid destination file"));
 		catclose(cat);
 		exit(1);
 	     }
@@ -732,7 +733,7 @@ int main(int argc, char *argv[])
 
 		      while (stricmp(ch, catgets(cat, 2,1,"N")) != 0)
 		      {
-			  printf("%s %s [%s/%s] ", fileargv[fileargc-1],
+			  PRINTF("%s %s [%s/%s] ", fileargv[fileargc-1],
 				 catgets(cat, 1,8," does not exist as directory. Create it?"),
 				 catgets(cat, 2,0,"Y"), catgets(cat, 2,1,"N"));
 			  scanf("%s", ch);

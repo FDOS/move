@@ -34,6 +34,7 @@
 #include <sys/stat.h>
 
 #include "../kitten/kitten.h"
+#include "../tnyprntf/tnyprntf.h"
 
 #include "movedir.h"  /* MoveDirectory, MoveTree */
 #include "misc.h"     /* addsep, dir_exist, SplitPath, strmcpy,
