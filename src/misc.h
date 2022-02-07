@@ -61,7 +61,7 @@ extern char *strmcat(char *dest, const char *src, const unsigned int maxlen);
 extern int copy_file(const char *src_filename, const char *dest_filename);
 extern void build_filename(char *, const char *, const char *);
 
-#define error(x,y,msg) fprintf(stderr, " [%s]\n", catgets(cat,x,y,msg))
+#define error(x,y,msg) PRINTF(" [%s]\n", catgets(cat,x,y,msg))
 
 #ifdef INLINE
 #define SplitPath(path, drive, dir, fname, ext)    (fnsplit((path), (drive), (dir), (fname), (ext)))
