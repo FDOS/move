@@ -33,6 +33,7 @@
 /* I N C L U D E S */
 /*----------------------------------------------------*/
 
+#include <conio.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -383,7 +384,8 @@ static void prepare_move(char *src_filename, char *dest_filename)
     struct stat src_statbuf;
     struct dfree disktable;
     unsigned long free_diskspace;
-    char input[5];
+    char buf[2 + 4 + 1]; /* 2 byte overhead + strlen + nul */
+    char *input;
 
     if (src_filename[strlen(src_filename)-1] == '.')
        src_filename[strlen(src_filename)-1] = 0;
@@ -413,7 +415,9 @@ static void prepare_move(char *src_filename, char *dest_filename)
 		PRINTF(" %s [%s/%s/%s/%s]? ", catgets(cat, 1,2,"Overwrite file"),
 		catgets(cat, 2,0,"Y"), catgets(cat, 2,1,"N"),
 		catgets(cat, 2,2,"All"), catgets(cat, 2,3,"None"));
-		scanf("%4s", input);
+		buf[0] = 5;
+		cgets(buf);
+		input = &buf[2];
 		puts("");
                 fflush(stdin);
 				
@@ -729,15 +733,25 @@ int main(int argc, char *argv[])
 		     (ContainsWildCards(src_filename))) &&
 		    (strchr(fileargv[fileargc-1], '*'|'?') != NULL))
 		{
-		      char ch[2] = "0";
+		      char buf[2 + 1 + 1];
+		      char *ch;
 
-		      while (stricmp(ch, catgets(cat, 2,1,"N")) != 0)
+		      while (1)
 		      {
 			  PRINTF("%s %s [%s/%s] ", fileargv[fileargc-1],
 				 catgets(cat, 1,8," does not exist as directory. Create it?"),
 				 catgets(cat, 2,0,"Y"), catgets(cat, 2,1,"N"));
-			  scanf("%s", ch);
+
+			  buf[0] = 2;
+			  cgets(buf);
+			  ch = &buf[2];
 			  puts("");
+
+			  if (stricmp(ch, catgets(cat, 2,1,"N")) == 0)
+			  {
+			     catclose(cat);
+			     exit(0);
+			  }
 
 			  if (stricmp(ch, catgets(cat, 2,0,"Y")) == 0)
 			  {
@@ -746,11 +760,6 @@ int main(int argc, char *argv[])
 			  }
 		      }
 
-		      if (stricmp(ch, catgets(cat, 2,1,"N")) == 0)
-		      {
-			 catclose(cat);
-			 exit(0);
-		      }
 		}
 		else
 		{
