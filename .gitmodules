@@ -1,3 +1,6 @@
 [submodule "kitten"]
 	path = kitten
 	url = https://github.com/FDOS/kitten.git
+[submodule "tnyprntf"]
+	path = tnyprntf
+	url = https://github.com/FDOS/tnyprntf.git
