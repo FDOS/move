@@ -82,7 +82,9 @@ int found=0;
 
 nl_catd cat;
 
-/* extern unsigned _stklen = 12288U; */
+#if defined(__TURBOC__)
+extern unsigned _stklen = 12288U;  /* increase default stack to 12KB */
+#endif
 
 /* P R O T O T Y P E S */
 /*------------------------------------------------------*/
