@@ -174,7 +174,7 @@ static int DelTree(const char* path)
 /* function "xcopy_file" for every found file.                             */
 /* Note: can use up to 40 bytes stack per call with Borland C              */
 /*-------------------------------------------------------------------------*/
-static int CopyTree(int depth, char *src_pathname,
+static int CopyTree(char *src_pathname,
              const char *src_filename,
              char *dest_pathname,
              const char *dest_filename) 
@@ -214,7 +214,7 @@ static int CopyTree(int depth, char *src_pathname,
         strmcat(old_new_dest_pathname, fileblock->ff_name, MAXPATH);
         strmcat(old_new_dest_pathname, DIR_SEPARATOR, MAXPATH);
 
-        if (!CopyTree(depth+1, src_pathname, "*.*",
+        if (!CopyTree(src_pathname, "*.*",
                  dest_pathname, "*.*")) return 0;
         *old_new_src_pathname = '\0';				 
         *old_new_dest_pathname = '\0';				 
@@ -341,7 +341,7 @@ int MoveDirectory(const char* src_filename, const char* dest_filename)
         if (!DelTree(dest_filename))
 			return 0;
 
-    if (!CopyTree(0, src_path, src_file, dest_path, dest_file))
+    if (!CopyTree(src_path, src_file, dest_path, dest_file))
     {
 	DelTree(dest_filename);	
 	return 0;
