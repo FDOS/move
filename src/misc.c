@@ -237,7 +237,7 @@ static void build_name(char *dest, const char *src, const char *pattern)
 void build_filename(char *dest_filename,const char *src_filename,const char
 *filepattern)
 {
-    char drive[MAXDRIVE], dir[MAXDIR], filename_file[MAXFILE],
+    static char drive[MAXDRIVE], dir[MAXDIR], filename_file[MAXFILE],
          filename_ext[MAXEXT], filepattern_file[MAXFILE],
          filepattern_ext[MAXEXT], tmp_filename[MAXFILE], tmp_ext[MAXEXT];
 

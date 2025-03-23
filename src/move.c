@@ -82,6 +82,8 @@ int found=0;
 
 nl_catd cat;
 
+/* extern unsigned _stklen = 12288U; */
+
 /* P R O T O T Y P E S */
 /*------------------------------------------------------*/
 

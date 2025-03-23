@@ -24,10 +24,10 @@
 
 #ifdef __WATCOMC__
 #include <direct.h>
-#include <stdlib.h>
 #else
 #include <dir.h>
 #endif
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <dos.h>
@@ -173,47 +173,54 @@ static int DelTree(const char* path)
 /* Searchs through the source directory (and its subdirectories) and calls */
 /* function "xcopy_file" for every found file.                             */
 /*-------------------------------------------------------------------------*/
-static int CopyTree(const char *src_pathname,
+static int CopyTree(int depth, char *src_pathname,
              const char *src_filename,
-             const char *dest_pathname,
+             char *dest_pathname,
              const char *dest_filename) 
 {
-  char filepattern[MAXPATH],
-       new_src_pathname[MAXPATH],
-       new_dest_pathname[MAXPATH],
+  char * old_new_src_pathname = src_pathname + strlen(src_pathname);
+  char * old_new_dest_pathname = dest_pathname + strlen(dest_pathname);
+  /* Warning: these are overwritten during recursive calls */
+  static char filepattern[MAXPATH],
        src_path_filename[MAXPATH],
        dest_path_filename[MAXPATH],
        tmp_filename[MAXFILE + MAXEXT],
        tmp_pathname[MAXPATH];
-  struct ffblk fileblock;
+  struct ffblk *fileblock;
   unsigned fileattrib;
   int done;
 
   /* copy files in subdirectories  */
+  if ((fileblock = malloc(sizeof(struct ffblk))) == NULL) {
+      error(1,30,"Insufficient memory");
+	  return 0;
+  }
   strmcpy(filepattern, src_pathname, sizeof(filepattern));
   strmcat(filepattern, src_filename, sizeof(filepattern));
-  done = findfirst(filepattern, &fileblock, FA_DIREC);
+  done = findfirst(filepattern, fileblock, FA_DIREC);
   while (!done)
   {
-    if (fileblock.ff_attrib == FA_DIREC &&
-        strcmp(fileblock.ff_name, ".") != 0 &&
-        strcmp(fileblock.ff_name, "..") != 0)
+    if (fileblock->ff_attrib == FA_DIREC &&
+        strcmp(fileblock->ff_name, ".") != 0 &&
+        strcmp(fileblock->ff_name, "..") != 0)
     {
         /* build source pathname */
-        strmcpy(new_src_pathname, src_pathname, sizeof(new_src_pathname));
-        strmcat(new_src_pathname, fileblock.ff_name, sizeof(new_src_pathname));
-        strmcat(new_src_pathname, DIR_SEPARATOR, sizeof(new_src_pathname));
+        /* strmcpy(new_src_pathname, src_pathname, sizeof(new_src_pathname)); */
+        strmcat(old_new_src_pathname, fileblock->ff_name, MAXPATH);
+        strmcat(old_new_src_pathname, DIR_SEPARATOR, MAXPATH);
 
         /* build destination pathname */
-        strmcpy(new_dest_pathname, dest_pathname, sizeof(new_dest_pathname));
-        strmcat(new_dest_pathname, fileblock.ff_name, sizeof(new_dest_pathname));
-        strmcat(new_dest_pathname, DIR_SEPARATOR, sizeof(new_dest_pathname));
+        /* strmcpy(new_dest_pathname, dest_pathname, sizeof(new_dest_pathname)); */
+        strmcat(old_new_dest_pathname, fileblock->ff_name, MAXPATH);
+        strmcat(old_new_dest_pathname, DIR_SEPARATOR, MAXPATH);
 
-        if (!CopyTree(new_src_pathname, "*.*",
-                 new_dest_pathname, "*.*")) return 0;
+        if (!CopyTree(depth+1, src_pathname, "*.*",
+                 dest_pathname, "*.*")) return 0;
+        *old_new_src_pathname = '\0';				 
+        *old_new_dest_pathname = '\0';				 
     }
 
-    done = findnext(&fileblock);
+    done = findnext(fileblock);
   }
 
   fileattrib = FA_RDONLY+FA_ARCH+FA_HIDDEN+FA_SYSTEM;
@@ -240,18 +247,19 @@ static int CopyTree(const char *src_pathname,
   {
       /* build source filename including path */
       strmcpy(src_path_filename, src_pathname, sizeof(src_path_filename));
-      strmcat(src_path_filename, fileblock.ff_name, sizeof(src_path_filename));
+      strmcat(src_path_filename, fileblock->ff_name, sizeof(src_path_filename));
 
       /* build destination filename including path */
       strmcpy(dest_path_filename, dest_pathname, sizeof(dest_path_filename));
-      build_filename(tmp_filename, fileblock.ff_name, dest_filename);
+      build_filename(tmp_filename, fileblock->ff_name, dest_filename);
       strmcat(dest_path_filename, tmp_filename, sizeof(dest_path_filename));
 
       if (!xcopy_file(src_path_filename, dest_path_filename))
 	  return 0;
 
-      done = findnext(&fileblock);
+      done = findnext(fileblock);
   }
+  free(fileblock);
   
   return 1;
 }
@@ -284,7 +292,7 @@ static int xcopy_file(const char *src_filename,
                    disktable.df_sclus * disktable.df_bsec;
 
   /* check free space on destination disk */
-  if (src_statbuf.st_size > free_diskspace) 
+  if ((unsigned long)src_statbuf.st_size > free_diskspace) 
   {
       error(1,29,"Insufficient disk space in destination path");
       return(0);
@@ -333,7 +341,7 @@ int MoveDirectory(const char* src_filename, const char* dest_filename)
         if (!DelTree(dest_filename))
 	    return 0;
 
-    if (!CopyTree(src_path, src_file, dest_path, dest_file))
+    if (!CopyTree(0, src_path, src_file, dest_path, dest_file))
     {
 	DelTree(dest_filename);	
 	return 0;
