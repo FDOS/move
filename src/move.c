@@ -316,9 +316,9 @@ static void move_files(const char *src_pathname, const char *src_filename,
                        const char *dest_pathname, const char *dest_filename,
                        int movedirs)
 {
-    char filepattern[MAXPATH],src_path_filename[MAXPATH],dest_path_filename[MAXPATH];
-    char tmp_filename[MAXFILE+MAXEXT],tmp_pathname[MAXPATH];
-    struct ffblk fileblock;
+    static char filepattern[MAXPATH],src_path_filename[MAXPATH],dest_path_filename[MAXPATH];
+    static char tmp_filename[MAXFILE+MAXEXT],tmp_pathname[MAXPATH];
+    static struct ffblk fileblock;
     unsigned fileattrib;
     int done;
 

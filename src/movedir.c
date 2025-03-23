@@ -172,6 +172,7 @@ static int DelTree(const char* path)
 /*-------------------------------------------------------------------------*/
 /* Searchs through the source directory (and its subdirectories) and calls */
 /* function "xcopy_file" for every found file.                             */
+/* Note: can use up to 40 bytes stack per call with Borland C              */
 /*-------------------------------------------------------------------------*/
 static int CopyTree(int depth, char *src_pathname,
              const char *src_filename,
@@ -181,11 +182,10 @@ static int CopyTree(int depth, char *src_pathname,
   char * old_new_src_pathname = src_pathname + strlen(src_pathname);
   char * old_new_dest_pathname = dest_pathname + strlen(dest_pathname);
   /* Warning: these are overwritten during recursive calls */
-  static char filepattern[MAXPATH],
+  static char path_pattern_buf[MAXPATH],
        src_path_filename[MAXPATH],
        dest_path_filename[MAXPATH],
-       tmp_filename[MAXFILE + MAXEXT],
-       tmp_pathname[MAXPATH];
+       tmp_filename[MAXFILE + MAXEXT];
   struct ffblk *fileblock;
   unsigned fileattrib;
   int done;
@@ -195,9 +195,9 @@ static int CopyTree(int depth, char *src_pathname,
       error(1,30,"Insufficient memory");
 	  return 0;
   }
-  strmcpy(filepattern, src_pathname, sizeof(filepattern));
-  strmcat(filepattern, src_filename, sizeof(filepattern));
-  done = findfirst(filepattern, fileblock, FA_DIREC);
+  strmcpy(path_pattern_buf, src_pathname, sizeof(path_pattern_buf));
+  strmcat(path_pattern_buf, src_filename, sizeof(path_pattern_buf));
+  done = findfirst(path_pattern_buf, fileblock, FA_DIREC);
   while (!done)
   {
     if (fileblock->ff_attrib == FA_DIREC &&
@@ -226,16 +226,16 @@ static int CopyTree(int depth, char *src_pathname,
   fileattrib = FA_RDONLY+FA_ARCH+FA_HIDDEN+FA_SYSTEM;
 
   /* find first source file */
-  strmcpy(filepattern, src_pathname, sizeof(filepattern));
-  strmcat(filepattern, src_filename, sizeof(filepattern));
-  done = findfirst(filepattern, fileblock, fileattrib);
+  strmcpy(path_pattern_buf, src_pathname, sizeof(path_pattern_buf));
+  strmcat(path_pattern_buf, src_filename, sizeof(path_pattern_buf));
+  done = findfirst(path_pattern_buf, fileblock, fileattrib);
 
   /* check if destination directory must be created */
   if (!dir_exists(dest_pathname))
   {
-    strmcpy(tmp_pathname, dest_pathname, sizeof(tmp_pathname));
+    strmcpy(path_pattern_buf, dest_pathname, sizeof(path_pattern_buf));
 
-    if (makedir(tmp_pathname) != 0)
+    if (makedir(path_pattern_buf) != 0)
     {
       error(1,28,"Unable to create directory");
       return 0;
