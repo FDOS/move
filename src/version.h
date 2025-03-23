@@ -1,4 +1,4 @@
 #ifndef __VERSION__H__
 #define __VERSION__H__
-#define VERSION "3.3a"
+#define VERSION "3.4"
 #endif
