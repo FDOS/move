@@ -228,7 +228,7 @@ static int CopyTree(int depth, char *src_pathname,
   /* find first source file */
   strmcpy(filepattern, src_pathname, sizeof(filepattern));
   strmcat(filepattern, src_filename, sizeof(filepattern));
-  done = findfirst(filepattern, &fileblock, fileattrib);
+  done = findfirst(filepattern, fileblock, fileattrib);
 
   /* check if destination directory must be created */
   if (!dir_exists(dest_pathname))
@@ -308,10 +308,10 @@ static int xcopy_file(const char *src_filename,
 
 int MoveDirectory(const char* src_filename, const char* dest_filename)
 {
-    char src_path[MAXPATH], src_file[MAXPATH];
-    char dest_path[MAXPATH],dest_file[MAXPATH];
+    static char src_path[MAXPATH], src_file[MAXPATH];
+    static char dest_path[MAXPATH],dest_file[MAXPATH];
 
-    char drive[MAXDRIVE], dir[MAXDIR], fname[MAXFILE], ext[MAXEXT];
+    static char drive[MAXDRIVE], dir[MAXDIR], fname[MAXFILE], ext[MAXEXT];
 
     SplitPath(src_filename, drive, dir, fname, ext);
     
@@ -339,7 +339,7 @@ int MoveDirectory(const char* src_filename, const char* dest_filename)
     } 
     if (dir_exists(dest_filename))
         if (!DelTree(dest_filename))
-	    return 0;
+			return 0;
 
     if (!CopyTree(0, src_path, src_file, dest_path, dest_file))
     {
