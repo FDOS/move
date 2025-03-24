@@ -60,6 +60,7 @@ extern char *strmcpy(char *dest, const char *src, const unsigned int maxlen);
 extern char *strmcat(char *dest, const char *src, const unsigned int maxlen);
 extern int copy_file(const char *src_filename, const char *dest_filename);
 extern void build_filename(char *, const char *, const char *);
+extern unsigned long getdiskfreespace(unsigned drive, int *error);
 
 #define error(x,y,msg) PRINTF(" [%s]\n", catgets(cat,x,y,msg))
 

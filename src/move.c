@@ -386,7 +386,6 @@ static void move_files(const char *src_pathname, const char *src_filename,
 static void prepare_move(char *src_filename, char *dest_filename)
 {
     struct stat src_statbuf;
-    struct dfree disktable;
     unsigned long free_diskspace;
     char buf[2 + 4 + 1]; /* 2 byte overhead + strlen + nul */
     char *input;
@@ -474,8 +473,7 @@ static void prepare_move(char *src_filename, char *dest_filename)
     stat((char *)src_filename, &src_statbuf);
 
     /* Get amount of free disk space in destination drive. */
-    getdfree(dest_drive, &disktable);
-    free_diskspace=(unsigned long) disktable.df_avail * disktable.df_sclus * disktable.df_bsec;
+    free_diskspace=getdiskfreespace(dest_drive, NULL);
 
     /* Check free space on destination disk. */
     if (src_statbuf.st_size>free_diskspace)

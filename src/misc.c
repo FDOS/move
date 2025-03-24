@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <ctype.h>  /* for toupper */
 
 #ifdef __GNUC__
 #include <direct.h>
@@ -312,4 +313,90 @@ int copy_file(const char *src_filename,
       _dos_setfileattr(dest_filename, fileattrib);
 
   return 1;
+}
+
+
+unsigned long old_dos_getdiskfree(unsigned drive, int *error)
+{
+  struct dfree disktable;
+  unsigned success;
+  success = getdfree(drive, &disktable);
+  if (error != NULL) *error = success;  /* 0=success */
+  return (unsigned long) disktable.df_avail * disktable.df_sclus * disktable.df_bsec;
+}
+
+/* drive 1=A,2=B,3=C,... error can be NULL if don't care */
+unsigned long extended_dos_getdiskfree(unsigned drive, int *error)
+{
+  static char rootname[] = "C:\\";
+  static union REGS r;
+  static struct SREGS s;
+  static struct {
+  	unsigned short whatever;
+  	unsigned short version;
+  	unsigned long  sectors_per_cluster; 
+  	unsigned long  bytes_per_sector;
+  	unsigned long  free_clusters;
+  	unsigned long  total_clusters;
+  	unsigned long  available_physical_sectors;
+  	unsigned long  total_physical_sectors;
+  	unsigned long  free_allocation_units; 
+  	unsigned long  total_allocation_units; 
+  	unsigned char  reserved[8];
+  } FAT32_Free_Space;
+  static unsigned long clustersize;
+
+  if (!drive) _dos_getdrive(&drive);  /* use current drive */
+  /* Note: RBIL carry clear and al==0 also means unimplemented 
+     alternately carry set and ax==undefined (usually unchanged) for unimplemented
+     ecm: RBIL is wrong, CF unchanged al=0 is the typical error return.
+     EDR-DOS returns NC ax=0 so checking for al!=0 here was wrong.
+  */
+  rootname[0] = 'A' + drive - 1;
+  /* printf("Looking at drive [%s]\n", rootname); */
+  r.w.cflag = 1;	/* CY before 21.73 calls! */
+  r.w.ax = 0x7303;
+  s.ds = FP_SEG(rootname);
+  r.w.dx = FP_OFF(rootname);
+  s.es = FP_SEG(&FAT32_Free_Space);
+  r.w.di = FP_OFF(&FAT32_Free_Space);
+  r.w.cx = sizeof(FAT32_Free_Space);
+  intdosx( &r, &r, &s );
+
+  /* see if call supported, if not then fallback to older get disk free API call */  
+  if (!(r.w.cflag & 0x01) && (r.h.al))
+  {
+    /* calculate free space, but handle some overflow cases (or switch to 64bit values) */ 
+    clustersize = FAT32_Free_Space.sectors_per_cluster * FAT32_Free_Space.bytes_per_sector;
+    /* printf("clustersize=%lu, free_clusters=%lu\n", clustersize, FAT32_Free_Space.free_clusters); */
+
+    /* total free is cluster size * # of free clusters */
+    if (clustersize)
+    {
+      /* if (MAX_ULONG / operand1) < operand2 then will overflow (operand1 * operand2 > MAX_ULONG */
+      /* printf("Is %lu > %lu?\n", (4294967295ul / clustersize), FAT32_Free_Space.free_clusters); */
+      if ((4294967295ul / clustersize) < FAT32_Free_Space.free_clusters) {
+          /* printf("returning max uLONG %lu\n", (unsigned long)-1l); */
+          return (unsigned long)-1; /* max size */
+      } else {
+          /* printf("returning %lu\n", clustersize * FAT32_Free_Space.free_clusters); */
+          return clustersize * FAT32_Free_Space.free_clusters;
+      }
+    }
+  }
+  /* else ((r.w.cflag & 0x01) || (!r.h.al)) */
+  return old_dos_getdiskfree(drive, error);
+}
+
+/*-------------------------------------------------------------------------*/
+/* Returns bytes free on disk, up to 4GB                                   */
+/* If error is not NULL sets to 0 on sucess or nonzero if error            */
+/*-------------------------------------------------------------------------*/
+unsigned long getdiskfreespace(unsigned drive, int *error)
+{
+    unsigned long freespace;
+    if (error != NULL) *error = 0;
+    freespace = extended_dos_getdiskfree(drive, error);
+    /* printf("FreeSpace is %lu bytes\n", freespace); */
+    return freespace;
 }
