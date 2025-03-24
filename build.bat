@@ -70,6 +70,9 @@ rem   or
 rem     --best for smallest
 
 %MAKE% -C src %TARGET%
+IF EXIST src\*.EXE IF NOT EXIST bin MKDIR bin > NUL
+rem we COPY instead of MOVE as otherwise forces linking every run (since no src\MOVE.EXE exist)
+IF EXIST src\*.EXE COPY /Y src\*.EXE bin\ > NUL
 
 set CC=
 set COMFLAGS=

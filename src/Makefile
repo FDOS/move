@@ -10,6 +10,7 @@ kitten.obj: ../kitten/kitten.c
 tnyprntf.obj: ../tnyprntf/tnyprntf.c
 	$(CC) $(_CFLAGS)$@ -c $^
 
+# Note: we can't MOVE file as it will call our MOVE.EXE on Win64
 move.exe move.com: move.c movedir.c misc.c $(EXTRA_OBJS)
 	$(CC) $(CFLAGS)$@ $^ $(LDFLAGS)
 	$(UPXARGS) $@
