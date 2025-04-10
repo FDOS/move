@@ -7,7 +7,7 @@ MOVE source1[, source2[,...]] destination
 
     source      The name of the file or directory you want to move (rename)
     destination Where you want to move the file(s) to
-    /Y     Supresses prompting to confirm you want to overwrite
+    /Y     Suppresses prompting to confirm you want to overwrite
              an existing destination file.
     /-Y     Causes prompting to confirm you want to overwrite an
              existing destination file.

@@ -568,7 +568,7 @@ static void Usage(char switchch)
     PRINTF("%s\n",  catgets(cat, 0,6," source      The name of the file or directory you want to move (rename)"));
     PRINTF("%s\n",  catgets(cat, 0,7," destination Where you want to move the file(s) to"));
     PRINTF(" %cY%s\n",switchch,
-		    catgets(cat, 0,8,"          Supresses prompting to confirm you want to overwrite"));
+		    catgets(cat, 0,8,"          Suppresses prompting to confirm you want to overwrite"));
     PRINTF("%s\n",  catgets(cat, 0,9,"             an existing destination file."));
     PRINTF(" %c-Y%s\n",switchch,
 		    catgets(cat, 0,10,"         Causes prompting to confirm you want to overwrite an"));
