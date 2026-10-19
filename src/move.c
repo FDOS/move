@@ -664,7 +664,7 @@ int main(int argc, char *argv[])
     {
         if (SourcePaths[i][0] == '\0')
         {
-	    PRINTF("%s\n", catgets(cat, 1,8,"Invalid source drive specification"));
+	    PRINTF("%s\n", catgets(cat, 1,6,"Invalid source drive specification"));
 	    catclose(cat);
             exit(4);
         } /* end if. */
