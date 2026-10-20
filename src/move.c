@@ -599,7 +599,13 @@ int main(int argc, char *argv[])
     atexit(exit_fn);
 
     /* Read COPYCMD to set confirmation. */
-    strncpy(environ,getenv("COPYCMD"),sizeof(environ));
+    ptr = getenv("COPYCMD");
+    environ[0] = '\0';
+    if (ptr != NULL)
+    {
+        strncpy(environ, ptr, sizeof(environ) - 1);
+        environ[sizeof(environ) - 1] = '\0';
+    }
     if (environ[0] != '\0')
     {
         strupr(environ);
@@ -607,8 +613,9 @@ int main(int argc, char *argv[])
         {
             if ((environ[1] == 'Y') && (environ[2] == '\0'))
                 opt_prompt = OVERWRITE; /* Overwrite existing files. */
-            else if (((environ[1] == 'N') && (environ[2] == '\0')) ||
-                     ((environ[1] == '-') && (environ[2] == 'Y') && (environ[3] == '\0')))
+            else if ((environ[1] == '-') && (environ[2] == 'Y') && (environ[3] == '\0'))
+                opt_prompt = ASK;               /* Prompt before overwriting. */
+            else if ((environ[1] == 'N') && (environ[2] == '\0'))
                 opt_prompt = SKIP;              /* Skip existing files. */
         }
     } /* end if. */
@@ -633,7 +640,7 @@ int main(int argc, char *argv[])
 	else if (stricmp(option, "y") == 0)
 	    opt_prompt=OVERWRITE;
 	else if (stricmp(option, "-y") == 0)
-	    opt_prompt=SKIP;
+	    opt_prompt=ASK;
 	else if (stricmp(option, "s") == 0)
 	    movedirs = 1;
 	else
